@@ -44,6 +44,7 @@ class Cinema {
     }
 
     public void AddSession(Session s) {
+
         if (_sessions.stream().anyMatch(session -> session.session.get_date() == s.get_date()))
             throw new IllegalArgumentException("this time is already taken");
         if((s.get_film().type().get_maskCode()& _formatMask) == 0)
@@ -71,11 +72,6 @@ class Cinema {
 
     protected int PriceModification(Session session) {
         return session.get_price();
-    }
-
-    public boolean[][] GetPlacesBySession(Session s)
-    {
-       return  _sessions.stream().filter(ses -> ses.session == s).findFirst().get().seats;
     }
 
     public int GetTotalPrice(Session s)

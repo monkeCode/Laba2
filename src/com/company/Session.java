@@ -5,7 +5,6 @@ import java.util.Date;
 class Session {
     private Date _date;
     private Film _film;
-
     private int _price;
 
     public Session(Date date, Film film, int price) {

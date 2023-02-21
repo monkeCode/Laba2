@@ -2,11 +2,6 @@ package com.company;
 
 import java.util.*;
 
-
-
-
-
-
 public class Main {
 
     private static final List<Client> clients = new ArrayList<>();
@@ -63,6 +58,11 @@ public class Main {
        int x,y;
        y = scanner.nextInt();
        x = scanner.nextInt();
+       if(scheme[y][x])
+       {
+           System.out.println("this seat is taken");
+           continue;
+       }
        PaymentSystem.BuyTicket(client,c,session,y,x);
        System.out.println("type zero if you wanna exit");
        if(scanner.next().equals("0")) return;
