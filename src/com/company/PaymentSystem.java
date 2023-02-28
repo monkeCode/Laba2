@@ -1,6 +1,8 @@
 package com.company;
 
-record Check(String clientName,String cinemaName, Session session, int price, int i, int j)
+import java.io.Serializable;
+
+record Check(String clientName,String cinemaName, Session session, int price, int i, int j) implements Serializable
 {
     @Override
     public String toString() {

@@ -1,5 +1,6 @@
 package com.company;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -7,7 +8,7 @@ enum HallType
 {
     Simple, Vip, Comfort, Imax, Children
 }
-public record Hall(HallType type, int capacity, FilmType... supportedTypes)
+public record Hall(HallType type, int capacity, FilmType... supportedTypes) implements Serializable
 {
     public boolean CanShow(Film film)
     {

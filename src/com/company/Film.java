@@ -1,5 +1,6 @@
 package com.company;
 
+import java.io.Serializable;
 import java.util.Date;
 
 enum FilmType
@@ -17,7 +18,7 @@ enum FilmType
 
 enum FilmGenre {Horror, Triller, Drama, Comedy}
 
-record Film(String name, Date createDate, int length, FilmGenre genre, FilmType type) {
+record Film(String name, Date createDate, int length, FilmGenre genre, FilmType type) implements Serializable {
 
     @Override
     public String toString() {

@@ -1,14 +1,15 @@
 package com.company;
 
+import java.io.Serializable;
 import java.util.*;
 
-class Cinema {
+class Cinema implements Serializable {
 
     private String _name;
     private String _information;
     private List<Hall> _halls = new ArrayList<>();
 
-    static class AllocatedSession
+    static class AllocatedSession implements Serializable
     {
         public Session session;
         public boolean[][] seats;

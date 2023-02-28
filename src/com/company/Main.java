@@ -1,5 +1,6 @@
 package com.company;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -109,6 +110,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws ParseException {
+
         Administrator basedAdmin = new Administrator("Admin", "000", "zero@zero.com", "123");
         basedAdmin
                 .AddPermission(new GetSoldTickedCount())
@@ -119,17 +121,7 @@ public class Main {
         redactor.AddPermission(new ChangeCinema());
         WorkNet.getInstance().clients.add(basedAdmin);
         WorkNet.getInstance().clients.add(redactor);
-        var film = new Film("Robots", new Date(),90, FilmGenre.Triller, FilmType.D3);
-        var film2 = new Film("Comedy", new Date(),90, FilmGenre.Comedy, FilmType.D2);
-        var defCin = Builder.CreateNewCinema("Bad Movies", "default cinema")
-                .AddHalls(new Hall(HallType.Simple, 100, FilmType.D2),
-                          new Hall(HallType.Comfort, 49, FilmType.D2,FilmType.D3),
-                          new Hall(HallType.Imax,36,FilmType.D2,FilmType.D3,FilmType.D4))
-                .AddSessions(new Session(new Date(), film, HallType.Imax, 700),
-                             new Session(new Date(), film, HallType.Comfort, 500),
-                             new Session(new Date(),film2, HallType.Simple, 300))
-                .Build();
-        WorkNet.getInstance().cinemas.add(defCin);
+
         while (true)
         {
             System.out.println("1.login as user\n2.register as user");
@@ -169,11 +161,36 @@ public class Main {
                 if(scaner.nextInt() == 1)
                 {
                     AdminWorkflow((Administrator) client);
-                    continue;
+
                 }
+                else ClientWorkflow(client);
             }
-            ClientWorkflow(client);
+            else
+                ClientWorkflow(client);
+            System.out.println("type zero to exit");
+            if(scaner.next().equals("0"))
+                break;
+        }
+        try {
+            WorkNet.getInstance().Save();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
 
+    }
+
+    public static void InitHardcode() {
+
+        var film = new Film("Robots", new Date(),90, FilmGenre.Triller, FilmType.D3);
+        var film2 = new Film("Comedy", new Date(),90, FilmGenre.Comedy, FilmType.D2);
+        var defCin = Builder.CreateNewCinema("Bad Movies", "default cinema")
+                .AddHalls(new Hall(HallType.Simple, 100, FilmType.D2),
+                          new Hall(HallType.Comfort, 49, FilmType.D2,FilmType.D3),
+                          new Hall(HallType.Imax,36,FilmType.D2,FilmType.D3,FilmType.D4))
+                .AddSessions(new Session(new Date(), film, HallType.Imax, 700),
+                             new Session(new Date(), film, HallType.Comfort, 500),
+                             new Session(new Date(),film2, HallType.Simple, 300))
+                .Build();
+        WorkNet.getInstance().cinemas.add(defCin);
     }
 }

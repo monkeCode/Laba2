@@ -160,13 +160,9 @@ class ChangeCinema implements Subsystem, Visitor
     {
         System.out.println("1. add hall\n2.remove hall\n");
         Scanner scanner = new Scanner(System.in);
-        switch(scanner.nextInt())
-        {
-            case 1:
-                halls.add(CreateHall(scanner));
-                break;
-            case 2:
-                RemoveHall(halls,sessions,scanner);
+        switch (scanner.nextInt()) {
+            case 1 -> halls.add(CreateHall(scanner));
+            case 2 -> RemoveHall(halls, sessions, scanner);
         }
     }
 
