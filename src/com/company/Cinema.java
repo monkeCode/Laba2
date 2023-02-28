@@ -5,38 +5,32 @@ import java.util.*;
 class Cinema {
 
     private String _name;
-    private int _formatMask;
     private String _information;
-    private int _capacity;
-    private class AllocatedSession
+    private List<Hall> _halls = new ArrayList<>();
+
+    static class AllocatedSession
     {
         public Session session;
         public boolean[][] seats;
-
+        public Hall hall;
         public int price;
 
-        public AllocatedSession(Session session, int capacity)
+        public AllocatedSession(Session session, Hall hall)
         {
             this.session = session;
-            var sqrtCapacity = Math.sqrt(capacity);
+            this.hall = hall;
+            var sqrtCapacity = Math.sqrt(hall.capacity());
             seats = new boolean[(int)Math.floor(sqrtCapacity)][(int)Math.ceil(sqrtCapacity)];
         }
     }
 
     private final List<Check> _checks = new ArrayList<>();
+    private final List<AllocatedSession> _sessions = new ArrayList<>();
 
-    private final List<AllocatedSession> _sessions;
-
-    public Cinema(String name, String information, FilmType[] supportedTypes, int capacity) {
+    public Cinema(String name, String information, Collection<Hall> halls) {
         _name = name;
         _information = information;
-        _formatMask = 0;
-        _capacity = capacity;
-
-        for (var type : supportedTypes) {
-            _formatMask ^= type.get_maskCode();
-        }
-        _sessions = new ArrayList<>();
+        _halls.addAll(halls);
     }
 
     public String get_name() {
@@ -45,12 +39,14 @@ class Cinema {
 
     public void AddSession(Session s) {
 
-        if (_sessions.stream().anyMatch(session -> session.session.get_date() == s.get_date()))
-            throw new IllegalArgumentException("this time is already taken");
-        if((s.get_film().type().get_maskCode()& _formatMask) == 0)
-            throw new IllegalArgumentException("cinema not supported this film");
-        var ses = new AllocatedSession(s, _capacity);
-        ses.price = PriceModification(s);
+        var hall = _halls.stream().
+                filter(h -> h.type() == s.get_hallType()
+                        && _sessions.stream().noneMatch(ses -> ses.hall == h && ses.session.get_date() == s.get_date())
+                        && h.CanShow(s.get_film())).findFirst();
+        if(hall.isEmpty())
+            throw new IllegalArgumentException("hall not founded");
+        var ses = new AllocatedSession(s, hall.get());
+        ses.price = PriceModification(ses);
         _sessions.add(ses);
     }
 
@@ -70,13 +66,24 @@ class Cinema {
                 filter(session -> session.price <= maxPrice).map( s -> s.session).toList();
     }
 
-    protected int PriceModification(Session session) {
-        return session.get_price();
+    protected int PriceModification(AllocatedSession session)
+    {
+        return session.session.get_price();
     }
 
-    public int GetTotalPrice(Session s)
+    public int GetTotalPrice(Session s, Client c)
     {
-       return  _sessions.stream().filter(ses -> ses.session == s).findFirst().get().price;
+        var status = c.get_status();
+        var modification = 0.0f;
+
+        switch (status)
+        {
+            case Vip ->  modification = 0.8f;
+            case Friend -> modification = 0.9f;
+            case Admin -> modification = 0.5f;
+            default -> modification = 1.0f;
+        }
+       return (int) (modification * _sessions.stream().filter(ses -> ses.session == s).findFirst().get().price);
     }
 
     public void CommitCheck(Check check)
@@ -86,8 +93,14 @@ class Cinema {
         _checks.add(check);
     }
 
-    public int GetIncomes() {
-        return _checks.stream().mapToInt(Check::price).sum();
+    public List<Check> GetChecks()
+    {
+        return new ArrayList<>(_checks);
+    }
+
+    public void Admit(Visitor visitor)
+    {
+        visitor.Visit(_halls, _checks, _sessions);
     }
 
     public boolean[][] GetSchemeToSession(Session s)

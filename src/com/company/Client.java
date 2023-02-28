@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 class Client {
+
+    public enum ClientStatus {Default, Friend, Vip, Admin}
     private String _name;
     private String _number;
     private String _email;
@@ -44,6 +46,24 @@ class Client {
     public int get_money() {
         return _money;
     }
+
+    public int get_total_spend()
+    {
+        return _checks.stream().mapToInt(Check::price).sum();
+    }
+    public int get_total_tickets()
+    {
+        return _checks.size();
+    }
+
+    public ClientStatus get_status()
+    {
+        if(_checks.size() >=4)
+            return ClientStatus.Vip;
+        if(_checks.size() >=3)
+            return ClientStatus.Friend;
+        return ClientStatus.Default;
+    }
 }
 
 class Administrator extends Client implements Facade
@@ -68,7 +88,13 @@ class Administrator extends Client implements Facade
     }
 
     @Override
-    public void AddPermission(Subsystem subsystem) {
+    public Facade AddPermission(Subsystem subsystem) {
         _permissions.add(subsystem);
+        return this;
+    }
+
+    @Override
+    public ClientStatus get_status() {
+        return ClientStatus.Admin;
     }
 }

@@ -1,14 +1,14 @@
 package com.company;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Main {
 
-    private static final List<Client> clients = new ArrayList<>();
-    private static final List<Cinema> cinemas = new ArrayList<>();
     private static Client Login(String name)
     {
-        var c = clients.stream().filter(client -> client.get_name().equals(name)).findFirst();
+        var c = WorkNet.getInstance().clients.stream().filter(client -> client.get_name().equals(name)).findFirst();
         if(c.isEmpty())
             throw new IllegalArgumentException("client doesn't exist");
         return c.get();
@@ -16,22 +16,24 @@ public class Main {
     private static Client Register(String name, String phone, String email)
     {
         var client = new Client(name,phone,email);
-        clients.add(client);
+        WorkNet.getInstance().clients.add(client);
         return client;
     }
 
-    private static void ClientWorkflow(Client client)
-    {
+    private static void ClientWorkflow(Client client) throws ParseException {
         while (true) {
 
         System.out.println("1.get film by name\n2.get film by date\n3.get film by price");
         Scanner scanner = new Scanner(System.in);
-        Cinema c = cinemas.get(0);
-        List<Session> sessions = null;
+        Cinema c = WorkNet.getInstance().cinemas.get(0);
+        List<Session> sessions;
         switch (scanner.nextInt()) {
             case 1 -> sessions = c.GetSessionsByName(scanner.next());
-            case 2 -> sessions = c.GetSessionsByDate(new Date(scanner.next()));
+            case 2 -> sessions = c.GetSessionsByDate(new SimpleDateFormat("dd.MM.yyyy").parse(scanner.next()));
             case 3 -> sessions = c.GetSessionsByPrice(client.get_money());
+            default -> {
+                continue;
+            }
         }
         for(int i = 0; i < (sessions != null ? sessions.size() : 0); i++)
         {
@@ -54,7 +56,12 @@ public class Main {
            }
            System.out.println();
        }
-       System.out.println("Price: " + c.GetTotalPrice(session));
+       var total = c.GetTotalPrice(session, client);
+       System.out.print("Price: "+ session.get_price());
+       if(session.get_price() != total)
+           System.out.println(", but for you: "  + total);
+       else System.out.println();
+
        int x,y;
        y = scanner.nextInt();
        x = scanner.nextInt();
@@ -63,7 +70,15 @@ public class Main {
            System.out.println("this seat is taken");
            continue;
        }
-       PaymentSystem.BuyTicket(client,c,session,y,x);
+       try
+       {
+           PaymentSystem.BuyTicket(client,c,session,y,x);
+       }
+       catch (IllegalArgumentException e)
+       {
+           System.out.println(e.getMessage());
+       }
+
        System.out.println("type zero if you wanna exit");
        if(scanner.next().equals("0")) return;
     }
@@ -76,11 +91,11 @@ public class Main {
 
         System.out.println("Select cinema");
 
-        for (int i = 0; i < Main.cinemas.size(); i++)
+        for (int i = 0; i < WorkNet.getInstance().cinemas.size(); i++)
         {
-            System.out.println(i + " "+ Main.cinemas.get(i));
+            System.out.println(i + " "+ WorkNet.getInstance().cinemas.get(i));
         }
-        var cinema = Main.cinemas.get(scanner.nextInt());
+        var cinema = WorkNet.getInstance().cinemas.get(scanner.nextInt());
 
         System.out.println("Select action");
 
@@ -93,27 +108,49 @@ public class Main {
 
     }
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws ParseException {
         Administrator basedAdmin = new Administrator("Admin", "000", "zero@zero.com", "123");
-        basedAdmin.AddPermission(new GetSoldTickedCount());
-        basedAdmin.AddPermission(new GetTotalIncomes());
-
-        var defCin = new Cinema("Bad movies","default",new FilmType[]{FilmType.D2, FilmType.D3}, 100);
-        cinemas.add(defCin);
-        defCin.AddSession(new Session(new Date(System.currentTimeMillis()),new Film("Cringe Comedy",
-                new Date(System.currentTimeMillis()-10000), 90, FilmGenre.Comedy,FilmType.D2),300));
+        basedAdmin
+                .AddPermission(new GetSoldTickedCount())
+                .AddPermission(new GetTotalIncomes())
+                .AddPermission(new GetStatistic())
+                .AddPermission(new GetClientStatus());
+        Administrator redactor = new Administrator("Redactor", "000", "zero@zero.com", "333");
+        redactor.AddPermission(new ChangeCinema());
+        WorkNet.getInstance().clients.add(basedAdmin);
+        WorkNet.getInstance().clients.add(redactor);
+        var film = new Film("Robots", new Date(),90, FilmGenre.Triller, FilmType.D3);
+        var film2 = new Film("Comedy", new Date(),90, FilmGenre.Comedy, FilmType.D2);
+        var defCin = Builder.CreateNewCinema("Bad Movies", "default cinema")
+                .AddHalls(new Hall(HallType.Simple, 100, FilmType.D2),
+                          new Hall(HallType.Comfort, 49, FilmType.D2,FilmType.D3),
+                          new Hall(HallType.Imax,36,FilmType.D2,FilmType.D3,FilmType.D4))
+                .AddSessions(new Session(new Date(), film, HallType.Imax, 700),
+                             new Session(new Date(), film, HallType.Comfort, 500),
+                             new Session(new Date(),film2, HallType.Simple, 300))
+                .Build();
+        WorkNet.getInstance().cinemas.add(defCin);
         while (true)
         {
-            System.out.println("1.login as user\n2.register as user\n3.login as admin");
+            System.out.println("1.login as user\n2.register as user");
             var scaner = new Scanner(System.in);
-            Client client = null;
+            Client client;
 
             switch (scaner.nextInt())
             {
                 case 1:
                     try {
                         client = Login(scaner.next());
+                        if(client.get_status() == Client.ClientStatus.Admin)
+                        {
+                            System.out.println("input pass");
+                            if(!((Administrator)client).Validate(scaner.next()))
+                            {
+                                System.out.println("incorrect pass");
+                                continue;
+                            }
+                        }
+
                     } catch (IllegalArgumentException ex)
                     {
                         System.out.println(ex.getMessage());
@@ -123,21 +160,17 @@ public class Main {
                 case 2:
                     client = Register(scaner.next(),scaner.next(),scaner.next());
                     break;
-                case 3:
-                    System.out.println("input pass");
-                    if(basedAdmin.Validate(scaner.next()))
-                    {
-                        System.out.println("1.login to admin workflow\n2. login to client workflow");
-                        if(scaner.nextInt() == 1)
-                        {
-                            AdminWorkflow(basedAdmin);
-                            continue;
-                        }
-                        client = basedAdmin;
-                        break;
-                    }
-                    System.out.println("incorrect pass");
+                default: continue;
+
+            }
+            if(client.get_status() == Client.ClientStatus.Admin)
+            {
+                System.out.println("1.login to admin workflow\n2. login to client workflow");
+                if(scaner.nextInt() == 1)
+                {
+                    AdminWorkflow((Administrator) client);
                     continue;
+                }
             }
             ClientWorkflow(client);
         }

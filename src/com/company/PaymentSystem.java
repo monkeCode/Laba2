@@ -12,7 +12,7 @@ public final class PaymentSystem
 {
     public static void BuyTicket(Client client, Cinema cinema, Session session, int i, int j)
     {
-        var price = cinema.GetTotalPrice(session);
+        var price = cinema.GetTotalPrice(session, client);
         Check check = new Check(client.get_name(), cinema.get_name(), session, price, i, j);
         client.CommitCheck(check);
         cinema.CommitCheck(check);
