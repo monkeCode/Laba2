@@ -1,9 +1,12 @@
 package com.company;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.nio.file.AccessDeniedException;
 import java.util.*;
+import java.util.stream.Stream;
 
-class Cinema implements Serializable {
+public class Cinema implements Serializable {
 
     private String _name;
     private String _information;
@@ -87,9 +90,15 @@ class Cinema implements Serializable {
        return (int) (modification * _sessions.stream().filter(ses -> ses.session == s).findFirst().get().price);
     }
 
-    public void CommitCheck(Check check)
-    {
+    public void CommitCheck(Check check) throws AccessDeniedException {
        var session =  _sessions.stream().filter(s -> s.session == check.session()).findFirst().get();
+        if(session.seats[check.i()][check.j()])
+            throw new AccessDeniedException("this place already sold");
+
+       if(check.i() < 0 || check.j() < 0 || check.i() >= session.seats.length || check.j() >= session.seats[0].length)
+       {
+           throw new IndexOutOfBoundsException("index out of bounds");
+       }
        session.seats[check.i()][check.j()] = true;
         _checks.add(check);
     }

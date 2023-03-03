@@ -3,7 +3,7 @@ package com.company;
 import java.io.Serializable;
 import java.util.Date;
 
-class Session implements Serializable {
+public class Session implements Serializable {
     private Date _date;
     private Film _film;
     private int _price;

@@ -3,22 +3,7 @@ package com.company;
 import java.io.Serializable;
 import java.util.Date;
 
-enum FilmType
-{
-    D2(1), D3(2), D4(4);
-    private final int _maskCode;
-    FilmType(int code){
-        _maskCode = code;
-    }
-
-    public int get_maskCode() {
-        return _maskCode;
-    }
-}
-
-enum FilmGenre {Horror, Triller, Drama, Comedy}
-
-record Film(String name, Date createDate, int length, FilmGenre genre, FilmType type) implements Serializable {
+public record Film(String name, Date createDate, int length, FilmGenre genre, FilmType type) implements Serializable {
 
     @Override
     public String toString() {

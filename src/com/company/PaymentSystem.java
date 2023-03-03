@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.Serializable;
+import java.nio.file.AccessDeniedException;
 
 record Check(String clientName,String cinemaName, Session session, int price, int i, int j) implements Serializable
 {
@@ -12,8 +13,7 @@ record Check(String clientName,String cinemaName, Session session, int price, in
 
 public final class PaymentSystem
 {
-    public static void BuyTicket(Client client, Cinema cinema, Session session, int i, int j)
-    {
+    public static void BuyTicket(Client client, Cinema cinema, Session session, int i, int j) throws AccessDeniedException {
         var price = cinema.GetTotalPrice(session, client);
         Check check = new Check(client.get_name(), cinema.get_name(), session, price, i, j);
         client.CommitCheck(check);

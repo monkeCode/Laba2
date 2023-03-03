@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-class Client implements Serializable {
+public class Client implements Serializable {
 
     public enum ClientStatus {Default, Friend, Vip, Admin}
     private String _name;

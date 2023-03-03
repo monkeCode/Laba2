@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -75,12 +76,12 @@ public class Main {
        {
            PaymentSystem.BuyTicket(client,c,session,y,x);
        }
-       catch (IllegalArgumentException e)
+       catch (IllegalArgumentException | AccessDeniedException e)
        {
            System.out.println(e.getMessage());
        }
 
-       System.out.println("type zero if you wanna exit");
+            System.out.println("type zero if you wanna exit");
        if(scanner.next().equals("0")) return;
     }
 
